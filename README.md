@@ -1,6 +1,6 @@
-# Library Management System
+# Library Management Dashboard
 
-A small library management website built with Python Flask, HTML, CSS, and SQLite.
+A polished library management website built with Python Flask, HTML, CSS, and SQLite.
 
 ## Features
 - Add books
@@ -9,6 +9,9 @@ A small library management website built with Python Flask, HTML, CSS, and SQLit
 - Issue a book
 - Return a book
 - Delete a book
+- Collection summary cards for total, available, and issued books
+- Responsive layout with accessible labels, focus states, and empty states
+- Server-side validation for book details
 - Automatically creates the SQLite database
 
 ## Requirements
@@ -37,5 +40,16 @@ A small library management website built with Python Flask, HTML, CSS, and SQLit
    http://127.0.0.1:5000
 
 The `library.db` database file is created automatically the first time the app runs.
+It is intentionally ignored by Git because it contains local application data.
+
+## Configuration
+
+For a non-local deployment, set a strong secret key before starting the app:
+
+```powershell
+$env:LIBRARY_SECRET_KEY = "replace-with-a-long-random-value"
+$env:FLASK_DEBUG = "false"
+python app.py
+```
 
 To stop the server, press `Ctrl+C` in the terminal.

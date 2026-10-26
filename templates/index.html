@@ -1,41 +1,89 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Library Management System</title>
+    <meta name="description" content="A simple dashboard for managing your library collection.">
+    <title>Library dashboard</title>
     <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
 </head>
 <body>
-    <main class="container">
-        <header>
-            <h1>📚 Library Management System</h1>
-            <p>Add, search, issue, and return books.</p>
+    <main class="container" id="main-content">
+        <header class="page-header">
+            <div class="brand">
+                <span class="brand-mark" aria-hidden="true">L</span>
+                <div>
+                    <p class="eyebrow">Collection workspace</p>
+                    <h1>Library dashboard</h1>
+                    <p class="subtitle">Keep your collection organized and easy to share.</p>
+                </div>
+            </div>
+            <div class="header-note" aria-label="Library status">
+                <span class="live-dot" aria-hidden="true"></span>
+                <span>Library is ready</span>
+            </div>
         </header>
 
         {% with messages = get_flashed_messages(with_categories=true) %}
           {% if messages %}
             {% for category, message in messages %}
-              <div class="notice {{ category }}">{{ message }}</div>
+              <div class="notice {{ category }}" role="{{ 'alert' if category == 'error' else 'status' }}">
+                  <span aria-hidden="true">{{ "!" if category == "error" else "✓" }}</span>
+                  {{ message }}
+              </div>
             {% endfor %}
           {% endif %}
         {% endwith %}
 
-        <section class="panel">
-            <h2>Add a Book</h2>
+        <section class="stats-grid" aria-label="Collection overview">
+            <article class="stat-card">
+                <div class="stat-icon blue" aria-hidden="true">▦</div>
+                <div><p>Total books</p><strong>{{ stats.total }}</strong></div>
+            </article>
+            <article class="stat-card">
+                <div class="stat-icon green" aria-hidden="true">✓</div>
+                <div><p>Available now</p><strong>{{ stats.available }}</strong></div>
+            </article>
+            <article class="stat-card">
+                <div class="stat-icon amber" aria-hidden="true">↗</div>
+                <div><p>Currently issued</p><strong>{{ stats.issued }}</strong></div>
+            </article>
+        </section>
+
+        <section class="panel add-panel" aria-labelledby="add-heading">
+            <div class="section-heading">
+                <div>
+                    <p class="eyebrow">Grow your collection</p>
+                    <h2 id="add-heading">Add a new book</h2>
+                </div>
+                <span class="section-number">01</span>
+            </div>
             <form method="POST" action="{{ url_for('index') }}" class="add-form">
-                <input type="text" name="title" placeholder="Book title" required>
-                <input type="text" name="author" placeholder="Author name" required>
-                <button type="submit">Add Book</button>
+                <label>
+                    <span>Book title</span>
+                    <input type="text" name="title" placeholder="e.g. The Great Gatsby"
+                           maxlength="{{ max_field_length }}" autocomplete="off" required>
+                </label>
+                <label>
+                    <span>Author</span>
+                    <input type="text" name="author" placeholder="e.g. F. Scott Fitzgerald"
+                           maxlength="{{ max_field_length }}" autocomplete="off" required>
+                </label>
+                <button type="submit"><span aria-hidden="true">+</span> Add book</button>
             </form>
         </section>
 
-        <section class="panel">
+        <section class="panel library-panel" aria-labelledby="books-heading">
             <div class="list-heading">
-                <h2>Books</h2>
+                <div>
+                    <p class="eyebrow">Your shelves</p>
+                    <h2 id="books-heading">Book collection</h2>
+                </div>
                 <form method="GET" action="{{ url_for('index') }}" class="search-form">
-                    <input type="search" name="search" value="{{ search }}" placeholder="Search title or author">
-                    <button type="submit">Search</button>
+                    <label class="sr-only" for="search">Search books</label>
+                    <span class="search-icon" aria-hidden="true">⌕</span>
+                    <input id="search" type="search" name="search" value="{{ search }}"
+                           maxlength="100" placeholder="Search title or author">
                     {% if search %}<a class="clear-link" href="{{ url_for('index') }}">Clear</a>{% endif %}
                 </form>
             </div>
@@ -44,30 +92,29 @@
             <div class="table-wrap">
                 <table>
                     <thead>
-                        <tr><th>#</th><th>Title</th><th>Author</th><th>Status</th><th>Actions</th></tr>
+                        <tr><th scope="col">Book</th><th scope="col">Author</th><th scope="col">Status</th><th scope="col">Actions</th></tr>
                     </thead>
                     <tbody>
                     {% for book in books %}
                         <tr>
-                            <td>{{ book.id }}</td>
-                            <td>{{ book.title }}</td>
-                            <td>{{ book.author }}</td>
+                            <td class="book-title"><span class="book-cover" aria-hidden="true">{{ book.title[0] | upper }}</span><strong>{{ book.title }}</strong></td>
+                            <td class="muted">{{ book.author }}</td>
                             <td>
                                 {% if book.available %}
-                                    <span class="status available">Available</span>
+                                    <span class="status available"><span aria-hidden="true"></span>Available</span>
                                 {% else %}
-                                    <span class="status issued">Issued</span>
+                                    <span class="status issued"><span aria-hidden="true"></span>Issued</span>
                                 {% endif %}
                             </td>
                             <td class="actions">
                                 <form method="POST" action="{{ url_for('toggle_book', book_id=book.id) }}">
-                                    <button class="small secondary" type="submit">
+                                    <button class="small secondary" type="submit" title="{{ 'Issue this book' if book.available else 'Mark this book as returned' }}">
                                         {{ "Issue" if book.available else "Return" }}
                                     </button>
                                 </form>
                                 <form method="POST" action="{{ url_for('delete_book', book_id=book.id) }}"
-                                      onsubmit="return confirm('Delete this book?');">
-                                    <button class="small danger" type="submit">Delete</button>
+                                      onsubmit="return confirm('Delete this book? This cannot be undone.');">
+                                    <button class="icon-button danger" type="submit" aria-label="Delete {{ book.title }}" title="Delete book">⌫</button>
                                 </form>
                             </td>
                         </tr>
@@ -76,10 +123,15 @@
                 </table>
             </div>
             {% else %}
-                <p class="empty">No books found. Add a book using the form above.</p>
+                <div class="empty-state">
+                    <div class="empty-icon" aria-hidden="true">⌕</div>
+                    <h3>{{ "No matching books" if search else "Your collection is empty" }}</h3>
+                    <p>{{ "Try a different title or author, or clear your search." if search else "Add your first book above to start building your collection." }}</p>
+                    {% if search %}<a class="clear-button" href="{{ url_for('index') }}">Clear search</a>{% endif %}
+                </div>
             {% endif %}
         </section>
-        <footer>Simple Library Management System · Python Flask + SQLite</footer>
+        <footer>Library dashboard <span>·</span> Built with Flask + SQLite</footer>
     </main>
 </body>
 </html>
