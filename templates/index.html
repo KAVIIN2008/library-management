@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Library Management System</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+    <main class="container">
+        <header>
+            <h1>📚 Library Management System</h1>
+            <p>Add, search, issue, and return books.</p>
+        </header>
+
+        {% with messages = get_flashed_messages(with_categories=true) %}
+          {% if messages %}
+            {% for category, message in messages %}
+              <div class="notice {{ category }}">{{ message }}</div>
+            {% endfor %}
+          {% endif %}
+        {% endwith %}
+
+        <section class="panel">
+            <h2>Add a Book</h2>
+            <form method="POST" action="{{ url_for('index') }}" class="add-form">
+                <input type="text" name="title" placeholder="Book title" required>
+                <input type="text" name="author" placeholder="Author name" required>
+                <button type="submit">Add Book</button>
+            </form>
+        </section>
+
+        <section class="panel">
+            <div class="list-heading">
+                <h2>Books</h2>
+                <form method="GET" action="{{ url_for('index') }}" class="search-form">
+                    <input type="search" name="search" value="{{ search }}" placeholder="Search title or author">
+                    <button type="submit">Search</button>
+                    {% if search %}<a class="clear-link" href="{{ url_for('index') }}">Clear</a>{% endif %}
+                </form>
+            </div>
+
+            {% if books %}
+            <div class="table-wrap">
+                <table>
+                    <thead>
+                        <tr><th>#</th><th>Title</th><th>Author</th><th>Status</th><th>Actions</th></tr>
+                    </thead>
+                    <tbody>
+                    {% for book in books %}
+                        <tr>
+                            <td>{{ book.id }}</td>
+                            <td>{{ book.title }}</td>
+                            <td>{{ book.author }}</td>
+                            <td>
+                                {% if book.available %}
+                                    <span class="status available">Available</span>
+                                {% else %}
+                                    <span class="status issued">Issued</span>
+                                {% endif %}
+                            </td>
+                            <td class="actions">
+                                <form method="POST" action="{{ url_for('toggle_book', book_id=book.id) }}">
+                                    <button class="small secondary" type="submit">
+                                        {{ "Issue" if book.available else "Return" }}
+                                    </button>
+                                </form>
+                                <form method="POST" action="{{ url_for('delete_book', book_id=book.id) }}"
+                                      onsubmit="return confirm('Delete this book?');">
+                                    <button class="small danger" type="submit">Delete</button>
+                                </form>
+                            </td>
+                        </tr>
+                    {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+            {% else %}
+                <p class="empty">No books found. Add a book using the form above.</p>
+            {% endif %}
+        </section>
+        <footer>Simple Library Management System · Python Flask + SQLite</footer>
+    </main>
+</body>
+</html>
