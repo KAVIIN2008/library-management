@@ -54,17 +54,18 @@ python app.py
 
 To stop the server, press `Ctrl+C` in the terminal.
 
-## Deploy publicly with Render
+## Deploy publicly with Vercel
 
-The repository includes a [`render.yaml`](./render.yaml) blueprint for deployment:
+The repository includes [`vercel.json`](./vercel.json) and
+[`api/index.py`](./api/index.py) for Vercel's Python serverless runtime:
 
-1. Sign in to [Render](https://render.com/) with GitHub.
-2. Select **New > Blueprint**.
-3. Choose `KAVIIN2008/library-management`.
-4. Confirm the `library-management` web service and select **Apply**.
-5. Wait for the build to finish, then open the generated `.onrender.com` URL.
+1. Sign in to [Vercel](https://vercel.com/) with GitHub.
+2. Select **Add New > Project**.
+3. Import `KAVIIN2008/library-management`.
+4. Leave the framework preset as **Other** and click **Deploy**.
+5. In **Settings > Environment Variables**, add `LIBRARY_SECRET_KEY` with a
+   strong random value, then redeploy.
 
-The Render free tier uses an ephemeral filesystem. Because this app stores books in
-SQLite, its data can be lost when the service is redeployed or restarted. For
-reliable long-term data, use a persistent disk or migrate the database to a hosted
-PostgreSQL service before production use.
+Vercel's serverless filesystem is temporary. This version places SQLite in
+`/tmp`, so books can be lost when the function is restarted or redeployed. For
+reliable long-term data, migrate the database to a hosted PostgreSQL service.

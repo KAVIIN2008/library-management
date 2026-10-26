@@ -11,6 +11,8 @@ app.config["SECRET_KEY"] = os.environ.get(
     "LIBRARY_SECRET_KEY", "library-management-local-development-key"
 )
 DB_PATH = Path(__file__).with_name("library.db")
+if os.environ.get("VERCEL"):
+    DB_PATH = Path("/tmp/library.db")
 MAX_FIELD_LENGTH = 120
 MAX_SEARCH_LENGTH = 100
 
