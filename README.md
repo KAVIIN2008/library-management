@@ -53,3 +53,18 @@ python app.py
 ```
 
 To stop the server, press `Ctrl+C` in the terminal.
+
+## Deploy publicly with Render
+
+The repository includes a [`render.yaml`](./render.yaml) blueprint for deployment:
+
+1. Sign in to [Render](https://render.com/) with GitHub.
+2. Select **New > Blueprint**.
+3. Choose `KAVIIN2008/library-management`.
+4. Confirm the `library-management` web service and select **Apply**.
+5. Wait for the build to finish, then open the generated `.onrender.com` URL.
+
+The Render free tier uses an ephemeral filesystem. Because this app stores books in
+SQLite, its data can be lost when the service is redeployed or restarted. For
+reliable long-term data, use a persistent disk or migrate the database to a hosted
+PostgreSQL service before production use.
